@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premises Checklist Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --daily-color: #1e90ff;
+            --daily-bg: #e6f0ff;
+            --daily-border: #a3c4ff;
+            --weekly-color: #22a722;
+            --weekly-bg: #e6ffe6;
+            --weekly-border: #a3e6a3;
+            --monthly-color: #e07b00;
+            --monthly-bg: #fff2e6;
+            --monthly-border: #ffcc99;
+            --additional-color: #7c3aed;
+            --additional-bg: #f5f3ff;
+            --additional-border: #c4b5fd;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #1e90ff 100%);
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(30,64,114,0.3);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .last-updated {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            font-family: 'DM Mono', monospace;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 24px;
+        }
+
+        /* ===== STAT CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.total  { border-color: #1e3c72; }
+        .stat-card.daily  { border-color: var(--daily-color); background: var(--daily-bg); }
+        .stat-card.weekly { border-color: var(--weekly-color); background: var(--weekly-bg); }
+        .stat-card.monthly { border-color: var(--monthly-color); background: var(--monthly-bg); }
+        .stat-card.additional { border-color: var(--additional-color); background: var(--additional-bg); }
+        .stat-card.yes-count { border-color: #16a34a; background: #f0fdf4; }
+        .stat-card.no-count  { border-color: #dc2626; background: #fef2f2; }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .stat-card.daily .stat-value   { color: var(--daily-color); }
+        .stat-card.weekly .stat-value  { color: var(--weekly-color); }
+        .stat-card.monthly .stat-value { color: var(--monthly-color); }
+        .stat-card.additional .stat-value { color: var(--additional-color); }
+        .stat-card.yes-count .stat-value  { color: #16a34a; }
+        .stat-card.no-count .stat-value   { color: #dc2626; }
+
+        /* ===== CONTROLS ===== */
+        .controls {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .controls input[type="text"],
+        .controls input[type="date"],
+        .controls select {
+            padding: 9px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .controls input[type="text"] { flex: 1; min-width: 200px; }
+
+        .controls input:focus,
+        .controls select:focus {
+            border-color: var(--daily-color);
+        }
+
+        .controls label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-reset {
+            padding: 9px 16px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover { background: #1e90ff; }
+
+        .btn-export {
+            padding: 9px 16px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s;
+        }
+
+        .btn-export:hover { background: #15803d; }
+
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--daily-color);
+            color: var(--daily-color);
+        }
+
+        /* ===== TABLE VIEW ===== */
+        .table-wrapper {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        thead tr {
+            background: #1e3c72;
+            color: white;
+        }
+
+        thead th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover { background: #f8fafc; }
+
+        tbody td {
+            padding: 11px 16px;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.Daily      { background: var(--daily-bg); color: var(--daily-color); border: 1px solid var(--daily-border); }
+        .badge.Weekly     { background: var(--weekly-bg); color: var(--weekly-color); border: 1px solid var(--weekly-border); }
+        .badge.Monthly    { background: var(--monthly-bg); color: var(--monthly-color); border: 1px solid var(--monthly-border); }
+        .badge.Additional { background: var(--additional-bg); color: var(--additional-color); border: 1px solid var(--additional-border); }
+
+        .yes { color: #16a34a; font-weight: 600; }
+        .no  { color: #dc2626; font-weight: 600; }
+
+        /* ===== NO ANSWERS VIEW ===== */
+        .no-answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .no-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid #dc2626;
+        }
+
+        .no-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .no-card h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .no-card .timestamp {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .no-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .no-item {
+            background: #fef2f2;
+            border-radius: 8px;
+            padding: 10px 14px;
+            border: 1px solid #fecaca;
+        }
+
+        .no-item .question {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #dc2626;
+            margin-bottom: 4px;
+        }
+
+        .no-item .note {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .no-item .note span {
+            color: var(--text);
+            font-style: normal;
+        }
+
+        /* ===== LOADING / EMPTY ===== */
+        .loading, .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--daily-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .page-btn {
+            padding: 6px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) { border-color: var(--daily-color); color: var(--daily-color); }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-info { font-size: 0.85rem; color: var(--muted); }
+
+        @media (max-width: 600px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .container { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .controls { flex-direction: column; align-items: stretch; }
+            .controls input[type="text"] { min-width: unset; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>📋 Premises Checklist Dashboard</h1>
+        <p>Live data from Google Sheets</p>
+    </div>
+    <div class="last-updated" id="lastUpdated">Loading...</div>
+</div>
+
+<div class="container">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-label">Total Submissions</div>
+            <div class="stat-value" id="statTotal">—</div>
+        </div>
+        <div class="stat-card daily">
+            <div class="stat-label">☀️ Daily</div>
+            <div class="stat-value" id="statDaily">—</div>
+        </div>
+        <div class="stat-card weekly">
+            <div class="stat-label">📅 Weekly</div>
+            <div class="stat-value" id="statWeekly">—</div>
+        </div>
+        <div class="stat-card monthly">
+            <div class="stat-label">🗓️ Monthly</div>
+            <div class="stat-value" id="statMonthly">—</div>
+        </div>
+        <div class="stat-card additional">
+            <div class="stat-label">➕ Additional</div>
+            <div class="stat-value" id="statAdditional">—</div>
+        </div>
+        <div class="stat-card yes-count">
+            <div class="stat-label">✅ Yes Answers</div>
+            <div class="stat-value" id="statYes">—</div>
+        </div>
+        <div class="stat-card no-count">
+            <div class="stat-label">❌ No Answers</div>
+            <div class="stat-value" id="statNo">—</div>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="🔍 Search submissions...">
+        <div class="filter-group">
+            <label>Frequency:</label>
+            <select id="freqFilter">
+                <option value="">All</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Additional">Additional</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="dateFrom">
+        </div>
+        <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="dateTo">
+        </div>
+        <button class="btn-reset" onclick="resetFilters()">Reset</button>
+        <button class="btn-export" onclick="exportToExcel()">⬇️ Export to Excel</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('all', this)">All Submissions</button>
+        <button class="tab" onclick="switchTab('no', this)">No Answers & Notes</button>
+    </div>
+
+    <!-- ALL SUBMISSIONS TABLE -->
+    <div id="tabAll">
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Frequency</th>
+                            <th>Time of Day</th>
+                            <th>Yes Count</th>
+                            <th>No Count</th>
+                            <th>Completion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="6"><div class="loading"><div class="loading-spinner"></div>Loading data...</div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>← Prev</button>
+                <span class="page-info" id="pageInfo">Page 1</span>
+                <button class="page-btn" id="nextBtn" onclick="changePage(1)">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NO ANSWERS VIEW -->
+    <div id="tabNo" style="display:none;">
+        <div class="no-answers-list" id="noAnswersList">
+            <div class="loading"><div class="loading-spinner"></div>Loading data...</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwD4QRvrg0RKeSoGvjD1vKK1V0NB15I6xPP51-WoW0-DosiWpn4Zx-ZN8QhYVXaw1e2Ow/exec';
+
+let allData = [];
+let filtered = [];
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let currentTab = 'all';
+
+// Question columns (not metadata)
+const META_COLS = ['Timestamp', 'Frequency', 'Time of Day'];
+
+async function loadData() {
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getData');
+        const json = await res.json();
+        if (json.result === 'success') {
+            allData = json.data.filter(r => r.Timestamp);
+            document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+            applyFilters();
+            updateStats();
+        }
+    } catch(err) {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="6"><div class="empty">⚠️ Could not load data. Check your Apps Script deployment.</div></td></tr>';
+    }
+}
+
+function updateStats() {
+    const counts = { Daily: 0, Weekly: 0, Monthly: 0, Additional: 0 };
+    let yesTotal = 0, noTotal = 0;
+
+    allData.forEach(row => {
+        if (counts[row.Frequency] !== undefined) counts[row.Frequency]++;
+        Object.keys(row).forEach(key => {
+            if (!META_COLS.includes(key) && !key.endsWith('- Notes') && !key.includes('date') && !key.includes('Date')) {
+                if (row[key] === 'Yes') yesTotal++;
+                if (row[key] === 'No') noTotal++;
+            }
+        });
+    });
+
+    document.getElementById('statTotal').textContent = allData.length;
+    document.getElementById('statDaily').textContent = counts.Daily;
+    document.getElementById('statWeekly').textContent = counts.Weekly;
+    document.getElementById('statMonthly').textContent = counts.Monthly;
+    document.getElementById('statAdditional').textContent = counts.Additional;
+    document.getElementById('statYes').textContent = yesTotal;
+    document.getElementById('statNo').textContent = noTotal;
+}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const freq = document.getElementById('freqFilter').value;
+    const from = document.getElementById('dateFrom').value;
+    const to = document.getElementById('dateTo').value;
+
+    filtered = allData.filter(row => {
+        const ts = new Date(row.Timestamp);
+        if (freq && row.Frequency !== freq) return false;
+        if (from && ts < new Date(from)) return false;
+        if (to && ts > new Date(to + 'T23:59:59')) return false;
+        if (search) {
+            const rowStr = JSON.stringify(row).toLowerCase();
+            if (!rowStr.includes(search)) return false;
+        }
+        return true;
+    });
+
+    currentPage = 1;
+    renderTable();
+    renderNoAnswers();
+}
+
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const page = filtered.slice(start, start + PAGE_SIZE);
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty">No submissions found.</div></td></tr>';
+        document.getElementById('pageInfo').textContent = 'No results';
+        document.getElementById('prevBtn').disabled = true;
+        document.getElementById('nextBtn').disabled = true;
+        return;
+    }
+
+    tbody.innerHTML = page.map(row => {
+        const ts = row.Timestamp ? new Date(row.Timestamp).toLocaleString('en-GB') : '—';
+        const freq = row.Frequency || '—';
+        const time = row['Time of Day'] || '—';
+
+        let yes = 0, no = 0, total = 0;
+        Object.keys(row).forEach(key => {
+            if (!META_COLS.includes(key) && !key.endsWith('- Notes') && !key.includes('date') && !key.includes('Date')) {
+                if (row[key] === 'Yes') { yes++; total++; }
+                if (row[key] === 'No') { no++; total++; }
+            }
+        });
+        const pct = total > 0 ? Math.round((yes / total) * 100) : 0;
+        const pctColor = pct >= 80 ? '#16a34a' : pct >= 50 ? '#e07b00' : '#dc2626';
+
+        return `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:0.78rem;">${ts}</td>
+            <td><span class="badge ${freq}">${freq}</span></td>
+            <td>${time}</td>
+            <td class="yes">${yes}</td>
+            <td class="no">${no}</td>
+            <td><span style="font-weight:700;color:${pctColor}">${pct}%</span></td>
+        </tr>`;
+    }).join('');
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages} (${filtered.length} results)`;
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+}
+
+function renderNoAnswers() {
+    const container = document.getElementById('noAnswersList');
+    const noRows = filtered.filter(row => {
+        return Object.keys(row).some(key =>
+            !META_COLS.includes(key) && !key.endsWith('- Notes') && !key.includes('date') && !key.includes('Date') && row[key] === 'No'
+        );
+    });
+
+    if (noRows.length === 0) {
+        container.innerHTML = '<div class="empty">✅ No "No" answers found for the current filters.</div>';
+        return;
+    }
+
+    container.innerHTML = noRows.map(row => {
+        const ts = row.Timestamp ? new Date(row.Timestamp).toLocaleString('en-GB') : '—';
+        const freq = row.Frequency || '—';
+
+        const noItems = Object.keys(row)
+            .filter(key => !META_COLS.includes(key) && !key.endsWith('- Notes') && !key.includes('date') && !key.includes('Date') && row[key] === 'No')
+            .map(key => {
+                const note = row[key + ' - Notes'] || '';
+                return `<div class="no-item">
+                    <div class="question">❌ ${key}</div>
+                    <div class="note">Note: <span>${note || 'No note provided'}</span></div>
+                </div>`;
+            }).join('');
+
+        return `<div class="no-card">
+            <div class="no-card-header">
+                <h3><span class="badge ${freq}" style="margin-right:8px;">${freq}</span>${row['Time of Day'] ? row['Time of Day'] + ' check' : 'Submission'}</h3>
+                <span class="timestamp">${ts}</span>
+            </div>
+            <div class="no-items">${noItems}</div>
+        </div>`;
+    }).join('');
+}
+
+function changePage(dir) {
+    currentPage += dir;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tabAll').style.display = tab === 'all' ? 'block' : 'none';
+    document.getElementById('tabNo').style.display = tab === 'no' ? 'block' : 'none';
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('freqFilter').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    applyFilters();
+}
+
+// Event listeners
+['searchInput', 'freqFilter', 'dateFrom', 'dateTo'].forEach(id => {
+    document.getElementById(id).addEventListener('input', applyFilters);
+    document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+function exportToExcel() {
+    if (filtered.length === 0) {
+        alert('No data to export.');
+        return;
+    }
+
+    // Get all unique headers from filtered data
+    const allHeaders = [];
+    filtered.forEach(row => {
+        Object.keys(row).forEach(key => {
+            if (!allHeaders.includes(key)) allHeaders.push(key);
+        });
+    });
+
+    // Build CSV rows
+    const csvRows = [];
+    csvRows.push(allHeaders.map(h => `"${h}"`).join(','));
+
+    filtered.forEach(row => {
+        const values = allHeaders.map(header => {
+            const val = row[header] !== undefined ? row[header] : '';
+            return `"${String(val).replace(/"/g, '""')}"`;
+        });
+        csvRows.push(values.join(','));
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `premises-checklist-${date}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+loadData();
+// Auto-refresh every 60 seconds
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>

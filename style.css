@@ -1,0 +1,14 @@
+.btn-export {
+    padding: 9px 16px;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+}
+
+.btn-export:hover { background: #15803d; }
